@@ -375,35 +375,51 @@
         const legacy = document.querySelector(".topbar");
         if (legacy && !immersive) legacy.style.display = "none";
 
-        document.body.prepend(buildTopbar(info));
         document.body.prepend(buildSidebar(info));
+
+        // Immersive pages already own their own top bar, docked at the top of
+        // the window. A second bar stacked on top of it (this one sat at
+        // z-index 55 over their z-index 20) hid the very controls - reader
+        // settings, chapter list, theme - that the bar exists to offer. So on
+        // those pages the rail is the only chrome this module adds, and the
+        // page's own bar is revealed through the `fqpc:chrome-reveal` event.
+        if (!immersive) document.body.prepend(buildTopbar(info));
 
         if (immersive) wireImmersive();
     }
 
-    /** Reading, listening and playback should own the window. The rail and the
-     *  bar fade out while the pointer is still and the user is not typing, and
-     *  come back on any movement toward the top edge. */
+    /** Reading, listening and playback should own the window: the rail fades
+     *  out while the pointer is still, and the page brings back its own bar
+     *  when the pointer returns to the top edge. */
     function wireImmersive() {
         let timer = 0;
         const hide = () => {
-            document.body.setAttribute("data-pc-chrome-bar", "hidden");
             document.body.dataset.pcRail = "off";
         };
-        const show = () => {
-            document.body.setAttribute("data-pc-chrome-bar", "shown");
+        const reveal = () => {
             document.body.dataset.pcRail = "on";
             window.clearTimeout(timer);
             timer = window.setTimeout(hide, 2600);
+            document.dispatchEvent(new CustomEvent("fqpc:chrome-reveal"));
         };
         document.addEventListener("mousemove", (event) => {
-            if (event.clientY < 90) show();
+            if (event.clientY < 90) reveal();
         });
         document.addEventListener("mouseleave", hide);
         document.addEventListener("keydown", (event) => {
-            if (event.key === "Escape") show();
+            if (event.key === "Escape") reveal();
         }, true);
-        show();
+        reveal();
+    }
+
+    /** Opens the page's own settings panel. The button is marked explicitly by
+     *  each immersive page rather than guessed from the toolbar, because those
+     *  toolbars carry unrelated buttons next to it. */
+    function openPageSettings() {
+        const button = document.querySelector("[data-pc-settings]");
+        if (!button) return false;
+        button.click();
+        return true;
     }
 
     // ----------------------------------------------------------- shortcuts --
@@ -447,6 +463,13 @@
             }
             if (event.key === "Escape" && isTyping(event.target)) {
                 event.target.blur();
+                return;
+            }
+            // Immersive pages hide their own bar; `S` reaches the controls that
+            // live on it without hunting for them with the pointer.
+            if (!ctrl && !event.altKey && !isTyping(event.target) &&
+                (event.key === "s" || event.key === "S")) {
+                if (openPageSettings()) event.preventDefault();
                 return;
             }
             if (!ctrl) return;

@@ -65,7 +65,7 @@
                 </div>
             </div>
             <div class="right">
-                <button class="icon-btn" type="button" id="settingsToggle" aria-label="设置"><i class="fas fa-sliders-h"></i></button>
+                <button class="icon-btn" type="button" id="settingsToggle" data-pc-settings aria-label="设置"><i class="fas fa-sliders-h"></i></button>
                 <button class="icon-btn" type="button" id="catalogToggle" aria-label="目录"><i class="fas fa-list-ul"></i></button>
                 <button class="icon-btn" type="button" id="themeToggle" aria-label="切换主题"><i class="fas fa-moon"></i></button>
             </div>
@@ -377,6 +377,13 @@
         loadDirectory().then(loadChapter).catch(error => {
             showImageMessage(error.message || "页面初始化失败");
             pageMetaEl.textContent = "目录加载失败";
+        });
+
+        // See read.html: the shell reveals the page's own chrome on a top-edge
+        // pointer move instead of drawing a second bar over it.
+        document.addEventListener("fqpc:chrome-reveal", () => {
+            showChrome();
+            scheduleChromeHide(4000);
         });
     </script>
 </body>

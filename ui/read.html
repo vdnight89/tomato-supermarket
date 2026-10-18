@@ -558,7 +558,7 @@
                 <button class="icon-btn" type="button" onclick="togglePanel('tocPanel')" aria-label="目录">
                     <i class="fas fa-list-ul"></i>
                 </button>
-                <button class="icon-btn" type="button" onclick="togglePanel('settingsPanel')" aria-label="设置">
+                <button class="icon-btn" type="button" data-pc-settings onclick="togglePanel('settingsPanel')" aria-label="设置">
                     <i class="fas fa-sliders-h"></i>
                 </button>
             </div>
@@ -1322,6 +1322,15 @@
                 bookMetaEl.textContent = "无法读取目录";
                 tocSummaryEl.textContent = "目录加载失败";
             });
+
+        // The desktop shell no longer draws its own bar over this page; moving
+        // the pointer back to the top edge asks the page to bring its own
+        // controls back. A desktop user needs them to stay put long enough to
+        // aim at a button, hence the longer idle than the touch default.
+        document.addEventListener("fqpc:chrome-reveal", () => {
+            showChrome();
+            scheduleChromeHide(4000);
+        });
     </script>
 </body>
 </html>

@@ -211,15 +211,20 @@
     <script>
         "use strict";
 
-        // Storefront tabs the upstream returns. `tab_type` is what the core
-        // forwards; the title is only for display.
+        // Storefront channels. `tabType` is the upstream `tab_type` the core
+        // forwards; `label` is what the user reads; `tab` is the content kind
+        // cards from this channel open as. These identifiers are what the
+        // bookstore actually serves - guessing them is how 短剧 ended up
+        // rendering novels, because the tab bar renames itself per request
+        // (tab_type 8 comes back as "看剧", 11 as "经典") and only the number is
+        // stable.
         const CHANNELS = [
-            { tabType: "2", title: "书城" },
-            { tabType: "3", title: "小说" },
-            { tabType: "8", title: "漫画" },
-            { tabType: "5", title: "听书" },
-            { tabType: "11", title: "短剧" },
-            { tabType: "9", title: "漫剧" },
+            { tabType: "2", label: "书城", tab: "小说" },
+            { tabType: "25", label: "小说", tab: "小说" },
+            { tabType: "8", label: "短剧 / 漫剧", tab: "短剧" },
+            { tabType: "5", label: "听书", tab: "听书" },
+            { tabType: "9", label: "漫画", tab: "漫画" },
+            { tabType: "11", label: "经典", tab: "小说" },
         ];
 
         const feedEl = document.getElementById("feed");
@@ -232,13 +237,8 @@
         // templates, so both the walk and the spread of its results need hard
         // bounds: an unbounded walk recurses past its own depth guard and a
         // `push(...large)` overflows the argument stack.
-        const MAX_DEPTH = 4;
-        const MAX_BOOKS = 200;
-
-        function tabForTitle(title) {
-            const map = { 小说: "小说", 漫画: "漫画", 听书: "听书", 短剧: "短剧", 漫剧: "漫剧", 书城: "小说" };
-            return map[title] || "小说";
-        }
+        const MAX_DEPTH = 6;
+        const MAX_BOOKS = 120;
 
         // ---------------------------------------------------------------- fetch
 
@@ -297,25 +297,25 @@
             }
         }
 
-        // The feed nests items three or four levels deep and mixes shapes
-        // between templates, so sections are discovered by walking rather than
-        // by a fixed path. Anything that cannot be resolved into a title + id
-        // is dropped instead of rendering an empty card.
+        // Only the requested channel is rendered. The response carries the
+        // whole tab bar, and walking all of it merged the bookstore's novels
+        // over everything else - which is why 短剧 and 漫剧 looked missing.
         function collectSections(payload) {
             const out = [];
             const tabs = payload?.data?.tab_item;
             if (!Array.isArray(tabs)) return out;
 
-            tabs.forEach((tab) => {
-                const cells = Array.isArray(tab.cell_data) ? tab.cell_data : [];
-                cells.forEach((cell) => {
-                    const books = collectBooks(cell);
-                    if (!books.length) return;
-                    out.push({
-                        title: cell.cell_name || tab.title || "推荐",
-                        tab: tabForTitle(tab.title),
-                        books,
-                    });
+            const tab = tabs.find((entry) => String(entry.tab_type) === String(activeChannel.tabType));
+            if (!tab) return out;
+
+            const cells = Array.isArray(tab.cell_data) ? tab.cell_data : [];
+            cells.forEach((cell) => {
+                const books = collectBooks(cell);
+                if (!books.length) return;
+                out.push({
+                    title: cell.cell_name || activeChannel.label,
+                    tab: activeChannel.tab,
+                    books,
                 });
             });
             return out;
@@ -327,7 +327,7 @@
             if (!cell || typeof cell !== "object" || level > MAX_DEPTH) return books;
 
             const item = unwrap(cell, level);
-            if (item && item.book_name) books.push(item);
+            if (item) books.push(item);
 
             if (Array.isArray(cell.cell_data)) {
                 for (let i = 0; i < cell.cell_data.length && books.length < MAX_BOOKS; i += 1) {
@@ -340,15 +340,34 @@
             return books;
         }
 
-        /** Upstream wraps a single entity in a one-element array more often
-         *  than not; accept either. */
+        /** Resolves one feed cell into a card.
+         *
+         *  Two payload shapes matter. Books arrive under `book_data`, wrapped
+         *  in a one-element array; dramas and manhua arrive under `video_data`
+         *  and are addressed by `series_id`, not `book_id` - matching only on
+         *  `book_name` silently dropped every drama card.
+         */
         function unwrap(value, depth) {
             const level = typeof depth === "number" ? depth : 0;
-            if (level > 6) return null;
+            if (level > 8) return null;
             if (Array.isArray(value)) return value.length ? unwrap(value[0], level + 1) : null;
             if (!value || typeof value !== "object") return null;
+
             if (value.book_data) return unwrap(value.book_data, level + 1);
-            return value.book_name || value.series_title || value.title ? value : null;
+            if (value.video_data) return unwrap(value.video_data, level + 1);
+
+            const name = value.book_name || value.series_title || value.title || value.video_title;
+            if (!name) return null;
+
+            const id = value.book_id || value.item_id || value.series_id ||
+                value.video_id || value.id || value.vid || "";
+            return {
+                id: String(id),
+                name,
+                author: value.author || value.copyright || "未知作者",
+                cover: value.thumb_url || value.cover_url || value.cover || value.vertical?.cover || "",
+                episodes: value.episode_cnt || value.total_chapter_number || "",
+            };
         }
 
         // --------------------------------------------------------------- render
@@ -397,7 +416,6 @@
         }
 
         function renderBook(book, tab) {
-            const id = book.book_id || book.item_id || book.id || "";
             const node = document.createElement("div");
             node.className = "book";
 
@@ -407,8 +425,8 @@
             img.loading = "lazy";
             img.referrerPolicy = "no-referrer";
             img.alt = "";
-            img.src = book.thumb_url || book.cover_url || book.cover || "";
-            cover.appendChild(img);
+            img.src = book.cover || "";
+            if (book.cover) cover.appendChild(img);
             if (tab !== "小说") {
                 const badge = document.createElement("span");
                 badge.className = "badge";
@@ -418,19 +436,31 @@
 
             const name = document.createElement("div");
             name.className = "name";
-            name.textContent = book.book_name || book.series_title || book.title || "";
+            name.textContent = book.name;
 
             const by = document.createElement("div");
             by.className = "by";
-            by.textContent = book.author || book.copyright || "未知作者";
+            by.textContent = book.author + (book.episodes ? ` · ${book.episodes}集` : "");
 
             node.appendChild(cover);
             node.appendChild(name);
             node.appendChild(by);
+
+            // A card without an id cannot be opened; do not pretend otherwise.
+            if (!book.id) {
+                node.classList.add("disabled");
+                return node;
+            }
             node.addEventListener("click", () => {
-                if (!id) return;
-                FQPC.track({ source: "番茄", id, tab, title: name.textContent, author: by.textContent, cover: img.src });
-                window.location.href = FQPC.route.detail("番茄", id, tab);
+                FQPC.track({
+                    source: "番茄",
+                    id: book.id,
+                    tab,
+                    title: book.name,
+                    author: book.author,
+                    cover: book.cover,
+                });
+                window.location.href = FQPC.route.detail("番茄", book.id, tab);
             });
             return node;
         }
@@ -443,7 +473,7 @@
                 const chip = document.createElement("button");
                 chip.className = "chip";
                 chip.type = "button";
-                chip.textContent = channel.title;
+                chip.textContent = channel.label;
                 if (channel === activeChannel) chip.classList.add("active");
                 chip.addEventListener("click", () => {
                     activeChannel = channel;

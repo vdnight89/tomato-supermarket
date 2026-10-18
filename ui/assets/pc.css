@@ -69,6 +69,13 @@ body[data-pc-shell] {
     padding-top: var(--pc-topbar);
 }
 
+/* Immersive pages own the full window: no desktop bar is stacked over theirs,
+   so the content reserves only the icon rail. */
+body[data-pc-chrome="immersive"] {
+    padding-left: var(--pc-sidebar-min);
+    padding-top: 0;
+}
+
 #pc-sidebar {
     position: fixed;
     inset: 0 auto 0 0;

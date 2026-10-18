@@ -351,7 +351,8 @@
                 <div class="tags" id="tags"></div>
 
                 <div class="actions">
-                    <button class="action-btn primary" id="frontendDownloadBtn" type="button">前端极速下载</button>
+                    <button class="action-btn primary" id="startBtn" type="button" disabled>开始阅读</button>
+                    <button class="action-btn secondary" id="frontendDownloadBtn" type="button">前端极速下载</button>
                     <button class="action-btn secondary" id="backendDownloadBtn" type="button">后端打包下载</button>
                     <button class="action-btn secondary" id="clearCacheBtn" type="button">清理缓存</button>
                     <button class="action-btn secondary" id="favoriteBtn" type="button">加入收藏</button>
@@ -432,8 +433,59 @@
             paintFavorite(shelfEntry(null));
         }
 
+        // One place decides which page plays a given content kind, so the
+        // "start" button and every chapter button can never disagree.
+        // 漫剧 and 短剧 are both series vids and share the video chain.
+        function openChapter(itemId) {
+            const query = `source=${encodeURIComponent(source)}&book_id=${encodeURIComponent(bookId)}&item_id=${encodeURIComponent(itemId)}&tab=${encodeURIComponent(tab)}`;
+            location.href = window.FQPC ? FQPC.route.player(tab, source, bookId, itemId) : `/read.html?${query}`;
+        }
+
+        const START_LABELS = {
+            "小说": "开始阅读",
+            "漫画": "开始阅读",
+            "听书": "开始收听",
+            "短剧": "开始观看",
+            "漫剧": "开始观看",
+        };
+
+        // Declared up here because `paintStart` runs at load time and `let`
+        // bindings are in their temporal dead zone until this line executes -
+        // reading `chapterData` from further down killed the whole script and
+        // left the page stuck on its placeholder copy.
         let chapterData = [];
         let currentPage = 1;
+        const startBtn = document.getElementById("startBtn");
+        function paintStart() {
+            if (!startBtn) return;
+            const ready = chapterData.length > 0;
+            startBtn.disabled = !ready;
+            startBtn.style.opacity = ready ? "" : "0.5";
+            startBtn.style.cursor = ready ? "" : "not-allowed";
+
+            const base = START_LABELS[tab] || "开始阅读";
+            const resume = ready && window.FQPC && FQPC.shelf.historyList()
+                .some((entry) => entry.id === bookId && entry.tab === tab && entry.chapter);
+            // "继续阅读" only when there is actually somewhere to continue from.
+            startBtn.textContent = resume ? base.replace("开始", "继续") : base;
+        }
+        if (startBtn) {
+            startBtn.addEventListener("click", () => {
+                if (!chapterData.length) return;
+                let itemId = chapterData[0].id;
+                if (window.FQPC) {
+                    const previous = FQPC.shelf.historyList()
+                        .find((entry) => entry.id === bookId && entry.tab === tab && entry.chapter);
+                    if (previous) {
+                        const found = chapterData.find((chapter) => chapter.id === previous.chapter);
+                        if (found) itemId = found.id;
+                    }
+                }
+                openChapter(itemId);
+            });
+            paintStart();
+        }
+
         let downloadAbort = false;
         let downloadRunning = false;
         let downloadController = null;
@@ -624,16 +676,7 @@
                     button.className = "chapter";
                     button.type = "button";
                     button.textContent = chapter.title;
-                    button.addEventListener("click", () => {
-                        let target = "read.html";
-                        if (tab === "漫画") target = "comic.html";
-                        if (tab === "听书") target = "listen.html";
-                        // 漫剧 and 短剧 are both series vids and play through the
-                        // same chain; sending 漫剧 to the novel reader opens a
-                        // page that has no video stream to render.
-                        if (tab === "短剧" || tab === "漫剧") target = "video.html";
-                        location.href = `/${target}?source=${encodeURIComponent(source)}&book_id=${encodeURIComponent(bookId)}&item_id=${encodeURIComponent(chapter.id)}&tab=${encodeURIComponent(tab)}`;
-                    });
+                    button.addEventListener("click", () => openChapter(chapter.id));
                     grid.appendChild(button);
                 });
                 block.appendChild(grid);
@@ -662,6 +705,7 @@
             }
             chapterData = formatDirectory(payload);
             renderPage(1);
+            paintStart();
             statusBar.textContent = "";
         }
 

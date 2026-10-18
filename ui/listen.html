@@ -356,6 +356,43 @@
                 flex-basis: 100%;
             }
         }
+
+        /* Synthesised playback: used when the upstream hands back a timed
+           script instead of an audio stream. */
+        audio[data-tts="1"] {
+            display: none;
+        }
+
+        .tts-line {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin-top: 12px;
+            padding: 12px 14px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--card-soft, rgba(255, 255, 255, 0.56));
+            font-size: 14px;
+            line-height: 1.7;
+            min-height: 62px;
+        }
+
+        .tts-line .tag {
+            flex: none;
+            font-size: 12px;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            padding: 1px 7px;
+        }
+
+        .tts-line .reading {
+            color: var(--text);
+        }
+
+        .tts-line .reading.pending {
+            color: var(--sub);
+        }
     </style>
     <link rel="stylesheet" href="/assets/pc.css">
     <script src="/assets/pc.js"></script>
@@ -383,6 +420,10 @@
             <h2 id="chapterTitle">加载中...</h2>
             <p class="muted" id="bookInfo">正在读取书籍信息</p>
             <audio id="audioPlayer" controls preload="none"></audio>
+            <div class="tts-line" id="ttsLine" hidden>
+                <span class="tag">朗读</span>
+                <span class="reading" id="ttsText"></span>
+            </div>
             <div class="controls">
                 <button class="btn" type="button" id="prevBtn"><i class="fas fa-backward-step"></i> 上一章</button>
                 <button class="btn primary" type="button" id="playBtn"><i class="fas fa-play"></i> 播放</button>
@@ -478,6 +519,104 @@
 
         function setStatus(text) {
             playerStatusEl.textContent = text;
+        }
+
+        // ------------------------------------------------------- 语音合成兜底
+        //
+        // 上游的听书播放接口有时只回带时间戳的朗读脚本（speech_text）而没有音频
+        // 地址，此时「未获取到音频地址」会让整个功能不可用。Windows 的 WebView2
+        // 基于 Chromium，自带 speechSynthesis 与中文语音，因此这里把脚本逐句
+        // 合成朗读，并用脚本自带的时间戳显示进度 —— 与安卓端用系统 TTS 播同一份
+        // 脚本的做法一致，只是引擎在宿主里。
+        const tts = {
+            active: false,
+            segments: [],
+            index: 0,
+            playing: false,
+        };
+
+        const ttsLine = document.getElementById("ttsLine");
+        const ttsText = document.getElementById("ttsText");
+
+        /** 形如 `[0,0]<0,0,0>文本` 的逐句脚本，取出起始毫秒与正文。 */
+        function parseSpeechText(raw) {
+            const out = [];
+            String(raw || "").split("\n").forEach((line) => {
+                const match = /^\[(\d+),\d*\](?:<\d+,\d+,\d+>)?(.*)$/.exec(line.trim());
+                if (!match) return;
+                const text = match[2].trim();
+                if (text) out.push({ start: Number(match[1]), text });
+            });
+            return out;
+        }
+
+        function pickVoice() {
+            const voices = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+            if (!voices.length) return null;
+            return voices.find((voice) => /^zh[-_]CN/i.test(voice.lang) && /female|xiaoxiao|huihui|yaoyao/i.test(voice.name))
+                || voices.find((voice) => /^zh/i.test(voice.lang))
+                || voices[0];
+        }
+
+        function paintTTS(index) {
+            if (!tts.segments.length) return;
+            const current = tts.segments[Math.min(index, tts.segments.length - 1)];
+            ttsText.textContent = current.text;
+            ttsText.classList.remove("pending");
+        }
+
+        function stopTTS() {
+            if (window.speechSynthesis) speechSynthesis.cancel();
+            tts.playing = false;
+        }
+
+        function speakFrom(index) {
+            if (!tts.active || !tts.segments.length) return;
+            if (index >= tts.segments.length) {
+                tts.playing = false;
+                ttsText.textContent = "本章朗读完毕";
+                ttsText.classList.add("pending");
+                setStatus("朗读完毕");
+                return;
+            }
+            tts.index = index;
+            paintTTS(index);
+            const utterance = new SpeechSynthesisUtterance(tts.segments[index].text);
+            utterance.lang = "zh-CN";
+            const voice = pickVoice();
+            if (voice) utterance.voice = voice;
+            utterance.rate = Number(audio.playbackRate) || 1;
+            utterance.onend = () => {
+                if (!tts.active) return;
+                speakFrom(index + 1);
+            };
+            utterance.onerror = (event) => {
+                // cancel() 触发的 error 不该向用户报成故障。
+                if (event.error === "canceled" || event.error === "interrupted") return;
+                tts.playing = false;
+                setStatus("语音合成失败：可尝试安装中文语音包");
+            };
+            speechSynthesis.speak(utterance);
+            tts.playing = true;
+        }
+
+        function startTTS(segments) {
+            tts.active = true;
+            tts.segments = segments;
+            tts.index = 0;
+            ttsLine.hidden = segments.length === 0;
+            audio.setAttribute("data-tts", "1");
+            if (!segments.length) {
+                setStatus("这一章没有可朗读的文本");
+                return;
+            }
+            // WebView2 首次调用 getVoices() 可能返回空，voiceschanged 之后再补。
+            if (window.speechSynthesis && !speechSynthesis.getVoices().length) {
+                speechSynthesis.addEventListener("voiceschanged", () => speakFrom(tts.index), { once: true });
+            }
+            speakFrom(0);
+            playBtn.innerHTML = '<i class="fas fa-pause"></i> 暂停';
+            setStatus(`正在朗读（共 ${segments.length} 句）`);
         }
 
         function closePanels() {
@@ -638,6 +777,14 @@
             audio.pause();
             audio.removeAttribute("src");
             audio.load();
+            // A synthesised chapter must stop speaking before the next one starts,
+            // otherwise the two overlap.
+            stopTTS();
+            tts.active = false;
+            tts.segments = [];
+            ttsLine.hidden = true;
+            audio.removeAttribute("data-tts");
+            playBtn.innerHTML = '<i class="fas fa-play"></i> 播放';
             itemId = current.id;
             chapterTitleEl.textContent = current.title;
             setStatus("正在加载音频...");
@@ -652,7 +799,17 @@
                 // A fallback request can finish after another chapter was selected.
                 // See .agents/notes/implemented/bug-fix/2026-09-16-cross-review-boundaries.md.
                 if (generation !== chapterGeneration) return;
-                if (!url) throw new Error("未获取到音频地址");
+                if (!url) {
+                    // No stream upstream: read the timed script instead of
+                    // giving up on the chapter.
+                    const segments = parseSpeechText(payload.data?.speech_text);
+                    if (generation !== chapterGeneration) return;
+                    startTTS(segments);
+                    return;
+                }
+                tts.active = false;
+                ttsLine.hidden = true;
+                audio.removeAttribute("data-tts");
                 const saved = Number(appStorage.getItem(progressKey(current.id)) || "0");
                 metadataHandler = () => {
                     if (generation !== chapterGeneration) return;
@@ -684,8 +841,25 @@
         }
 
         playBtn.addEventListener("click", () => {
-            if (!audio.getAttribute("src")) return;
             const generation = chapterGeneration;
+            if (tts.active) {
+                if (speechSynthesis.speaking && !speechSynthesis.paused) {
+                    speechSynthesis.pause();
+                    tts.playing = false;
+                    playBtn.innerHTML = '<i class="fas fa-play"></i> 播放';
+                    setStatus("已暂停");
+                } else if (speechSynthesis.paused) {
+                    speechSynthesis.resume();
+                    tts.playing = true;
+                    playBtn.innerHTML = '<i class="fas fa-pause"></i> 暂停';
+                    setStatus(`正在朗读（第 ${tts.index + 1} 句）`);
+                } else {
+                    speakFrom(tts.index);
+                    playBtn.innerHTML = '<i class="fas fa-pause"></i> 暂停';
+                }
+                return;
+            }
+            if (!audio.getAttribute("src")) return;
             if (audio.paused) audio.play().catch(() => {
                 if (generation === chapterGeneration) setStatus("播放失败，请重试");
             });

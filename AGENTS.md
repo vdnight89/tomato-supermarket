@@ -1,4 +1,4 @@
-# AGENTS.md — fqapp PC 协作指南
+# AGENTS.md — 番茄超市 协作指南
 
 本文件是代理在本仓库的执行入口。用户当前的明确要求优先于本文件和本地说明；已经给出的授权
 与限制在任务续接时仍有效。版本与命令以受 Git 跟踪的构建脚本为准。
@@ -16,7 +16,16 @@
 | `core/` | `fqapi_core`，来自 Android 版的 Rust 核心（协议回归与离线夹具在 `core/tests`、`core/testdata`） |
 | `ui/` | Web UI：发现、搜索、详情、阅读、听书、短剧、漫画、书架、设置 |
 | `runtime/` | 默认配置与响应过滤器，编译进 exe，首次启动释放到数据目录 |
-| `tools/` | 构建与校验脚本 |
+| `tools/` | 构建与校验脚本，以及 `icon-args.json`（应用图标的生图参数） |
+
+### 应用图标
+
+图标主体是戴墨镜的大番茄，源图由 `tools/icon-args.json` 里的参数生成，
+`desktop/icons/icon-master.png` 是裁切并做了圆角遮罩的母版。换图时改参数重新生成，
+再从母版导出 `32x32.png` / `128x128.png` / `128x128@2x.png` / `icon.ico`
+（ico 内含 16/24/32/48/64/128/256 七档），并同步替换 `ui/favicon.png`
+与 `ui/assets/favicon.png`——侧栏品牌区和浏览器页签图标用的是后者。
+`tauri.conf.json` 的 `bundle.icon` 决定窗口与任务栏图标。
 
 ## 2. 开工与范围控制
 
@@ -31,7 +40,7 @@
 ```powershell
 cargo test --offline -p fqapi_core     # 核心协议回归
 .\tools\check-format.ps1               # rustfmt 覆盖检查
-.\tools\build.ps1 -Offline             # 构建并产出 dist/fqpc.exe + SHA256SUMS
+.\tools\build.ps1 -Offline             # 构建并产出 dist/番茄超市.exe + SHA256SUMS
 ```
 
 | 改动面 | 验证方式 |

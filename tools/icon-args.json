@@ -1,0 +1,11 @@
+{
+  "_comment": "番茄超市应用图标的生图参数。重新生成：chcp 65001 -> mcode-tools connector call connector__matrix__generate_image --args-file tools/icon-args.json。生成后取回 node_id 的下载链接，落到 desktop/icons/icon-master.png 的来源图，再按 AGENTS.md 的说明导出各尺寸并替换 favicon。本文件记录的是最终采用的方案。",
+  "requests": [
+    {
+      "aspect_ratio": "1:1",
+      "resolution": "2K",
+      "output_file": "icon-source.png",
+      "prompt": "App icon, premium 3D render: a plump glossy red tomato mascot character wearing stylish black sunglasses, confident relaxed smirk, small green calyx stem on top, the tomato fills most of the frame, soft studio lighting with subtle rim light, soft contact shadow, vibrant saturated scarlet red, clean warm gradient background, playful modern brand mascot style, ultra clean, highly detailed, square composition, centered, no text, no letters, no watermark"
+    }
+  ]
+}

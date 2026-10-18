@@ -1,4 +1,4 @@
-//! fqapp PC - the desktop shell.
+//! 番茄超市 - the desktop shell.
 //!
 //! This binary is deliberately thin. It owns exactly three things that cannot
 //! live inside the shared core:
@@ -67,7 +67,7 @@ fn main() {
                         .map_err(|e| format!("bad loopback url {entry}: {e}"))?,
                 ),
             )
-            .title("fqapp PC")
+            .title("番茄超市")
             .inner_size(1280.0, 840.0)
             .min_inner_size(1024.0, 680.0)
             .center()

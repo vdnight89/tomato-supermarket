@@ -1,4 +1,4 @@
-// fqapp PC - shared desktop shell.
+// 番茄超市 - shared desktop shell.
 //
 // Injected into every page. It owns the parts of the product that are the same
 // everywhere - navigation, theme, keyboard control, the local shelf - so each
@@ -263,7 +263,7 @@
 
     function pageInfo() {
         const path = window.location.pathname;
-        return PAGES[path] || { key: "other", chrome: "app", title: "fqapp PC" };
+        return PAGES[path] || { key: "other", chrome: "app", title: "番茄超市" };
     }
 
     function el(tag, className, html) {
@@ -293,7 +293,7 @@
 
         const brand = el("div");
         brand.id = "pc-brand";
-        brand.innerHTML = `<img src="/assets/favicon.png" alt=""><span id="pc-brand-text">fqapp PC</span>`;
+        brand.innerHTML = `<img src="/assets/favicon.png" alt=""><span id="pc-brand-text">番茄超市</span>`;
 
         const foot = el("div");
         foot.id = "pc-side-foot";

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "fqapp PC",
+  "productName": "番茄超市",
   "version": "1.0.0",
   "identifier": "com.fqapp.pc",
   "build": {

@@ -1,6 +1,7 @@
-# fqapp PC
+# 番茄超市
 
-番茄小说聚合客户端的 **Windows 桌面版**。单个 exe，免安装，双击即用。
+番茄小说聚合客户端的 **Windows 桌面版**，图标是一只戴墨镜的大番茄。
+单个 exe，免安装，双击即用。
 
 与 Android 版共用同一个 Rust 核心（`fqapi_core`），不是另写一套业务逻辑：小说的签名请求、
 设备池轮换、CENC 解密、短剧选流、漫画图片解密全部复用同一条链路。
@@ -9,7 +10,7 @@
 
 ## 快速开始
 
-1. 把 `fqpc.exe` 复制到任意目录（U 盘、桌面、只读共享都可以）。
+1. 把 `番茄超市.exe` 复制到任意目录（U 盘、桌面、只读共享都可以）。
 2. 双击运行。
 3. 首次启动会在 `%LOCALAPPDATA%\fqapp-pc` 建立数据目录，之后所有状态都在那里。
 
@@ -29,7 +30,7 @@
 
 ```powershell
 $env:FQPC_HOME = "E:\fqapp-data"
-.\fqpc.exe
+.\番茄超市.exe
 ```
 
 `FQPC_HOME` 指向的目录会成为唯一的数据落点（含设备池、漫画图片缓存、日志）。
@@ -84,7 +85,7 @@ $env:FQPC_HOME = "E:\fqapp-data"
 ## 架构
 
 ```
-fqpc.exe  (单个文件)
+番茄超市.exe  (单个文件)
 ├── desktop/        Tauri v2 外壳：窗口、托盘式单实例、资源内嵌
 ├── core/           fqapi_core：与 Android 版完全一致的 Rust 核心
 ├── ui/             Web UI：发现 / 搜索 / 详情 / 阅读 / 听书 / 短剧 / 漫画 / 书架 / 设置
@@ -121,7 +122,7 @@ cargo build --release -p fqpc
 
 ```powershell
 .\tools\build.ps1
-# 产物: dist\fqpc.exe + dist\SHA256SUMS
+# 产物: dist\番茄超市.exe + dist\SHA256SUMS
 ```
 
 改过 `ui/` 下的文件后必须重新 `cargo build` —— UI 是编译期内嵌进 exe 的，

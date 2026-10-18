@@ -1,6 +1,6 @@
 [package]
 name = "fqpc"
-description = "fqapp PC edition - a single-file, no-install desktop client"
+description = "番茄超市 edition - a single-file, no-install desktop client"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

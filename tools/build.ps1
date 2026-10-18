@@ -30,18 +30,23 @@ if ($LASTEXITCODE -ne 0) { throw "cargo build failed with exit code $LASTEXITCOD
 $exe = Join-Path (Get-Location) 'target\release\fqpc.exe'
 if (-not (Test-Path $exe)) { throw "expected $exe to exist after a successful build" }
 
+# The crate keeps an ASCII binary name, but the shipped file carries the product
+# name: for a portable build the filename is what the user sees in Explorer and
+# on the taskbar.
+$productFile = '番茄超市.exe'
+
 $dist = Join-Path (Get-Location) 'dist'
 New-Item -ItemType Directory -Path $dist -Force | Out-Null
-$staged = Join-Path $dist 'fqpc.exe'
+$staged = Join-Path $dist $productFile
 Copy-Item $exe $staged -Force
 
 $hash = (Get-FileHash $staged -Algorithm SHA256).Hash.ToLowerInvariant()
-$lines = @("$hash  fqpc.exe")
+$lines = @("$hash  $productFile")
 [System.IO.File]::WriteAllLines((Join-Path $dist 'SHA256SUMS'), $lines, (New-Object System.Text.UTF8Encoding($false)))
 
 $size = [math]::Round((Get-Item $staged).Length / 1MB, 2)
 Write-Host ''
-Write-Host "==> dist\fqpc.exe  $size MB" -ForegroundColor Green
+Write-Host "==> dist\$productFile  $size MB" -ForegroundColor Green
 Write-Host "    sha256 $hash"
 Write-Host ''
 Write-Host 'Copy that one file anywhere and run it.' -ForegroundColor Green

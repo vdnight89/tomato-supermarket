@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>fqapp PC</title>
+    <style>
+        html, body { height: 100%; margin: 0; background: #0f141b; color: #9fb0c2;
+            font-family: "MiSans", "Microsoft YaHei UI", "Segoe UI", sans-serif; }
+        .boot { height: 100%; display: flex; flex-direction: column; gap: 14px;
+            align-items: center; justify-content: center; }
+        .ring { width: 34px; height: 34px; border-radius: 50%;
+            border: 3px solid rgba(132, 181, 255, 0.25); border-top-color: #84b5ff;
+            animation: spin 0.9s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <!--
+      Boot document only. The shell never renders this page for long: the main
+      window is created pointed straight at the loopback origin, which serves the
+      real UI from the same host. It exists because Tauri requires a
+      `frontendDist` directory to bundle against.
+    -->
+    <div class="boot">
+        <div class="ring"></div>
+        <div>正在启动 fqapp…</div>
+    </div>
+</body>
+</html>

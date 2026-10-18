@@ -1,0 +1,551 @@
+/* fqapp PC - desktop shell.
+ *
+ * Loaded after every page's own stylesheet, so equal-specificity rules here win
+ * without needing `!important`. The pages were written for a phone-width
+ * WebView: this file turns them into a windowed application.
+ *
+ * Three ideas drive the overrides:
+ *   - a persistent sidebar, because a desktop window has room for chrome and
+ *     re-navigating loses the user's place;
+ *   - width-driven grids, because a 1280px window and a 2560px window should
+ *     both fill their space instead of sitting in a 1320px column;
+ *   - a calmer reading surface for the immersive pages (novel, audio, drama,
+ *     manga), where the sidebar collapses and the top bar auto-hides.
+ *
+ * Colour comes from the variables each page already defines, with `--accent`
+ * aliased to `--primary` for the two pages that use the older name.
+ */
+
+:root {
+    --pc-sidebar: 216px;
+    --pc-sidebar-min: 60px;
+    --pc-topbar: 54px;
+    --pc-radius: 12px;
+    --pc-gap: 18px;
+    --accent: var(--primary, #2f6fed);
+    --pc-hover: rgba(127, 127, 127, 0.09);
+    --pc-active: rgba(47, 111, 237, 0.12);
+}
+
+body.dark {
+    --pc-hover: rgba(255, 255, 255, 0.07);
+    --pc-active: rgba(132, 181, 255, 0.16);
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(127, 127, 127, 0.42) transparent;
+}
+
+*::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: rgba(127, 127, 127, 0.36);
+    border: 2px solid transparent;
+    background-clip: content-box;
+    border-radius: 8px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: rgba(127, 127, 127, 0.55);
+    background-clip: content-box;
+}
+
+/* A visible focus ring is the one affordance a keyboard user cannot do without,
+ * and pointer users simply never see it. */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+/* ---------------------------------------------------------------- shell -- */
+
+body[data-pc-shell] {
+    padding-left: var(--pc-sidebar);
+    padding-top: var(--pc-topbar);
+}
+
+#pc-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: var(--pc-sidebar);
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 10px;
+    background: var(--card);
+    border-right: 1px solid var(--line);
+    backdrop-filter: blur(18px);
+    transition: width 0.18s ease, transform 0.18s ease;
+}
+
+body[data-pc-chrome="immersive"] #pc-sidebar {
+    width: var(--pc-sidebar-min);
+    padding: 14px 8px;
+}
+
+body[data-pc-chrome="immersive"] #pc-sidebar .pc-nav-label,
+body[data-pc-chrome="immersive"] #pc-brand-text,
+body[data-pc-chrome="immersive"] #pc-side-foot {
+    display: none;
+}
+
+body[data-pc-chrome="immersive"] #pc-sidebar .pc-nav-item {
+    justify-content: center;
+    padding: 10px 0;
+}
+
+body[data-pc-chrome="immersive"][data-pc-rail="off"] #pc-sidebar {
+    transform: translateX(-100%);
+}
+
+body[data-pc-chrome="immersive"][data-pc-rail="off"] {
+    padding-left: 0;
+}
+
+#pc-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px 14px;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.2px;
+    color: var(--text);
+    overflow: hidden;
+}
+
+#pc-brand img {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    flex: none;
+}
+
+#pc-brand-text {
+    white-space: nowrap;
+}
+
+.pc-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    height: 40px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--sub);
+    font: inherit;
+    font-size: 14px;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.pc-nav-item i {
+    width: 18px;
+    flex: none;
+    text-align: center;
+    font-size: 15px;
+}
+
+.pc-nav-item:hover {
+    background: var(--pc-hover);
+    color: var(--text);
+}
+
+.pc-nav-item.active {
+    background: var(--pc-active);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.pc-nav-item.active::before {
+    content: "";
+    position: absolute;
+    left: -10px;
+    top: 9px;
+    bottom: 9px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--accent);
+}
+
+.pc-nav-spacer {
+    flex: 1;
+}
+
+#pc-side-foot {
+    font-size: 12px;
+    color: var(--sub);
+    padding: 8px 12px 2px;
+    border-top: 1px solid var(--line);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --------------------------------------------------------------- topbar -- */
+
+#pc-topbar {
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: var(--pc-topbar);
+    z-index: 55;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 20px 0 24px;
+    background: var(--card);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(18px);
+    transition: transform 0.22s ease, opacity 0.22s ease;
+}
+
+body[data-pc-chrome="immersive"][data-pc-chrome-bar="hidden"] #pc-topbar {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+#pc-title {
+    font-size: 15px;
+    font-weight: 650;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#pc-search {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: min(420px, 38vw);
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--pc-hover);
+    color: var(--sub);
+    cursor: text;
+}
+
+#pc-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+}
+
+#pc-search kbd {
+    font: inherit;
+    font-size: 11px;
+    color: var(--sub);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 1px 5px;
+    white-space: nowrap;
+}
+
+.pc-icon-btn {
+    width: 34px;
+    height: 34px;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--sub);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.pc-icon-btn:hover {
+    background: var(--pc-hover);
+    color: var(--text);
+}
+
+/* ------------------------------------------------------- page behaviour -- */
+
+/* The phone pages centre themselves in a 1320px column; a window should not. */
+body[data-pc-shell] .wrap {
+    max-width: 1840px;
+    margin: 0;
+    padding: 22px 28px 56px;
+}
+
+/* Immersive pages own their full viewport; only the rail and the auto-hiding
+ * bar sit on top of them. */
+body[data-pc-chrome="immersive"] .wrap {
+    max-width: none;
+}
+
+/* Wider windows show more cards per row instead of stretching each one. */
+body[data-pc-shell] .results,
+body[data-pc-shell] .grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--pc-gap);
+}
+
+body[data-pc-shell] .card,
+body[data-pc-shell] .item,
+body[data-pc-shell] .book-card {
+    transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+}
+
+body[data-pc-shell] .card:hover,
+body[data-pc-shell] .item:hover,
+body[data-pc-shell] .book-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(18, 28, 45, 0.16);
+    border-color: var(--accent);
+}
+
+body[data-pc-shell] .card:hover .card-cover img,
+body[data-pc-shell] .item:hover .card-cover img {
+    transform: scale(1.05);
+}
+
+.card-cover img {
+    transition: transform 0.25s ease;
+}
+
+/* Desktop pointer: a title tooltip is cheaper than a tap target. */
+body[data-pc-shell] .title {
+    cursor: pointer;
+}
+
+/* --------------------------------------------------------------- shared -- */
+
+.pc-section {
+    margin: 0 0 30px;
+}
+
+.pc-section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin: 0 0 14px;
+}
+
+.pc-section-head h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.pc-section-head .pc-section-hint {
+    font-size: 12.5px;
+    color: var(--sub);
+}
+
+.pc-section-head .pc-section-action {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--accent);
+    text-decoration: none;
+    cursor: pointer;
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+}
+
+.pc-empty {
+    padding: 42px 20px;
+    text-align: center;
+    color: var(--sub);
+    font-size: 14px;
+    border: 1px dashed var(--line);
+    border-radius: var(--pc-radius);
+}
+
+.pc-panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--pc-radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+}
+
+.pc-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.pc-row:last-child {
+    border-bottom: 0;
+}
+
+.pc-row label {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    color: var(--text);
+}
+
+.pc-row .pc-row-hint {
+    display: block;
+    font-size: 12px;
+    color: var(--sub);
+    margin-top: 2px;
+}
+
+.pc-row select,
+.pc-row input[type="number"],
+.pc-row input[type="text"] {
+    min-width: 130px;
+    height: 32px;
+    padding: 0 9px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+}
+
+.pc-switch {
+    position: relative;
+    width: 42px;
+    height: 23px;
+    flex: none;
+}
+
+.pc-switch input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+}
+
+.pc-switch span {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: rgba(127, 127, 127, 0.34);
+    transition: background 0.16s ease;
+    pointer-events: none;
+}
+
+.pc-switch span::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    transition: transform 0.16s ease;
+}
+
+.pc-switch input:checked + span {
+    background: var(--accent);
+}
+
+.pc-switch input:checked + span::after {
+    transform: translateX(19px);
+}
+
+.pc-btn {
+    height: 34px;
+    padding: 0 16px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--card);
+    color: var(--text);
+    font: inherit;
+    font-size: 13.5px;
+    cursor: pointer;
+}
+
+.pc-btn:hover {
+    background: var(--pc-hover);
+}
+
+.pc-btn.primary {
+    background: var(--accent);
+    border-color: transparent;
+    color: #fff;
+}
+
+.pc-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 34px;
+    transform: translateX(-50%);
+    z-index: 90;
+    padding: 10px 18px;
+    border-radius: 10px;
+    background: rgba(20, 28, 38, 0.94);
+    color: #f4f7fb;
+    font-size: 13.5px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.pc-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-6px);
+}
+
+.pc-keys {
+    position: fixed;
+    right: 18px;
+    bottom: 16px;
+    z-index: 50;
+    font-size: 11.5px;
+    color: var(--sub);
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* ------------------------------------------------------------- reading -- */
+
+/* The reader, the audio player and the comic viewer all size their body text
+ * from variables the pages already expose, so the settings slider scales them
+ * without any page having to know the setting exists. */
+body[data-pc-shell] {
+    --reader-font-size: calc(20px * var(--pc-font-scale, 1));
+}
+
+body[data-pc-shell] .reader-content,
+body[data-pc-shell] .reader-body {
+    line-height: var(--pc-line-height, 1.9);
+}
+
+@media (max-width: 860px) {
+    :root {
+        --pc-sidebar: 0px;
+    }
+
+    body[data-pc-shell] .wrap {
+        padding: 16px 14px 48px;
+    }
+}

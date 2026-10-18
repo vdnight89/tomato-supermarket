@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发现 · fqapp PC</title>
+    <link rel="icon" href="./favicon.png" type="image/png">
+    <link rel="stylesheet" href="./assets/css/all.min.css">
+    <style>
+        :root {
+            --bg: #eef2f6;
+            --card: rgba(255, 255, 255, 0.92);
+            --text: #18212f;
+            --sub: #637284;
+            --primary: #2f6fed;
+            --line: rgba(24, 33, 47, 0.1);
+            --shadow: 0 18px 40px rgba(18, 28, 45, 0.08);
+        }
+
+        body.dark {
+            --bg: #0f141b;
+            --card: rgba(20, 28, 38, 0.94);
+            --text: #f4f7fb;
+            --sub: #9fb0c2;
+            --primary: #84b5ff;
+            --line: rgba(255, 255, 255, 0.08);
+            --shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "MiSans", "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei UI", "Segoe UI", sans-serif;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 22px;
+        }
+
+        .chip {
+            height: 32px;
+            padding: 0 14px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--card);
+            color: var(--sub);
+            font: inherit;
+            font-size: 13.5px;
+            cursor: pointer;
+            transition: background 0.14s ease, color 0.14s ease;
+        }
+
+        .chip:hover { color: var(--text); }
+
+        .chip.active {
+            background: var(--primary);
+            border-color: transparent;
+            color: #fff;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 18px;
+        }
+
+        .book {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .book .cover {
+            position: relative;
+            aspect-ratio: 3 / 4;
+            border-radius: var(--pc-radius);
+            overflow: hidden;
+            background: rgba(127, 127, 127, 0.12);
+            border: 1px solid var(--line);
+        }
+
+        .book .cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.25s ease;
+        }
+
+        .book:hover .cover img { transform: scale(1.05); }
+
+        .book .cover .badge {
+            position: absolute;
+            left: 8px;
+            top: 8px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.62);
+            color: #fff;
+            font-size: 11px;
+        }
+
+        .book .name {
+            font-size: 13.5px;
+            line-height: 1.4;
+            color: var(--text);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .book .by { font-size: 12px; color: var(--sub); }
+
+        .resume {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
+        }
+
+        .resume-item {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid var(--line);
+            border-radius: var(--pc-radius);
+            background: var(--card);
+            cursor: pointer;
+            transition: transform 0.14s ease, box-shadow 0.14s ease;
+        }
+
+        .resume-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 26px rgba(18, 28, 45, 0.14);
+        }
+
+        .resume-item img {
+            width: 48px;
+            height: 64px;
+            flex: none;
+            border-radius: 8px;
+            object-fit: cover;
+            background: rgba(127, 127, 127, 0.14);
+        }
+
+        .resume-item .t {
+            font-size: 13.5px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .resume-item .m { font-size: 11.5px; color: var(--sub); margin-top: 4px; }
+
+        .status {
+            margin-top: 26px;
+            font-size: 13px;
+            color: var(--sub);
+            text-align: center;
+        }
+
+        .skeleton {
+            height: 210px;
+            border-radius: var(--pc-radius);
+            background: linear-gradient(100deg,
+                rgba(127, 127, 127, 0.08) 30%,
+                rgba(127, 127, 127, 0.18) 50%,
+                rgba(127, 127, 127, 0.08) 70%);
+            background-size: 220% 100%;
+            animation: shimmer 1.3s linear infinite;
+        }
+
+        @keyframes shimmer { to { background-position: -220% 0; } }
+    </style>
+    <link rel="stylesheet" href="/assets/pc.css">
+    <script src="/assets/pc.js"></script>
+</head>
+<body>
+    <div class="wrap">
+        <section class="pc-section" id="resumeSection" hidden>
+            <div class="pc-section-head">
+                <h2>继续阅读</h2>
+                <span class="pc-section-hint">从上次离开的地方接着看</span>
+                <button class="pc-section-action" id="allHistoryBtn" type="button">全部书架</button>
+            </div>
+            <div class="resume" id="resumeList"></div>
+        </section>
+
+        <section class="pc-section">
+            <div class="pc-section-head">
+                <h2>发现</h2>
+                <span class="pc-section-hint">番茄书城推荐 · 按 Ctrl+K 搜索</span>
+            </div>
+            <div class="chips" id="tabChips"></div>
+        </section>
+
+        <div id="feed"></div>
+        <div class="status" id="statusBar"></div>
+    </div>
+
+    <script>
+        "use strict";
+
+        // Storefront tabs the upstream returns. `tab_type` is what the core
+        // forwards; the title is only for display.
+        const CHANNELS = [
+            { tabType: "2", title: "书城" },
+            { tabType: "3", title: "小说" },
+            { tabType: "8", title: "漫画" },
+            { tabType: "5", title: "听书" },
+            { tabType: "11", title: "短剧" },
+            { tabType: "9", title: "漫剧" },
+        ];
+
+        const feedEl = document.getElementById("feed");
+        const statusBar = document.getElementById("statusBar");
+        const tabChips = document.getElementById("tabChips");
+        let activeChannel = CHANNELS[0];
+        let generation = 0;
+
+        // The feed nests items several levels deep and mixes shapes between
+        // templates, so both the walk and the spread of its results need hard
+        // bounds: an unbounded walk recurses past its own depth guard and a
+        // `push(...large)` overflows the argument stack.
+        const MAX_DEPTH = 4;
+        const MAX_BOOKS = 200;
+
+        function tabForTitle(title) {
+            const map = { 小说: "小说", 漫画: "漫画", 听书: "听书", 短剧: "短剧", 漫剧: "漫剧", 书城: "小说" };
+            return map[title] || "小说";
+        }
+
+        // ---------------------------------------------------------------- fetch
+
+        // A feed that never arrives must not leave a permanent skeleton with no
+        // explanation. Surface anything that goes wrong, including the silent
+        // failures an async call makes easy to lose.
+        window.addEventListener("error", (event) => {
+            statusBar.textContent = `页面错误：${event.message || event.error}`;
+        });
+        window.addEventListener("unhandledrejection", (event) => {
+            const reason = event.reason;
+            statusBar.textContent = `加载失败：${(reason && reason.message) || reason}`;
+        });
+
+        async function loadFeed() {
+            const mine = ++generation;
+            statusBar.textContent = "正在加载推荐…";
+            renderSkeleton();
+
+            let payload = null;
+            try {
+                const response = await fetch(
+                    `/api/v1/recommend/homepage?tab_type=${encodeURIComponent(activeChannel.tabType)}&offset=0`
+                );
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                payload = await response.json();
+            } catch (e) {
+                statusBar.textContent = `推荐加载失败：${e.message}`;
+                feedEl.textContent = "";
+                return;
+            }
+            if (mine !== generation) return;
+
+            // A malformed feed must not leave a permanent skeleton on screen.
+            // The upstream templates change without warning, so surface the
+            // failure instead of swallowing it.
+            let sections = [];
+            try {
+                sections = collectSections(payload);
+            } catch (e) {
+                feedEl.textContent = "";
+                statusBar.textContent = `推荐解析失败：${e.message}`;
+                return;
+            }
+            try {
+                feedEl.textContent = "";
+                if (!sections.length) {
+                    statusBar.textContent = "这个频道暂时没有内容，换一个试试。";
+                    return;
+                }
+                sections.forEach((section) => feedEl.appendChild(renderSection(section)));
+                statusBar.textContent = "";
+            } catch (e) {
+                feedEl.textContent = "";
+                statusBar.textContent = `推荐渲染失败：${e.message}`;
+            }
+        }
+
+        // The feed nests items three or four levels deep and mixes shapes
+        // between templates, so sections are discovered by walking rather than
+        // by a fixed path. Anything that cannot be resolved into a title + id
+        // is dropped instead of rendering an empty card.
+        function collectSections(payload) {
+            const out = [];
+            const tabs = payload?.data?.tab_item;
+            if (!Array.isArray(tabs)) return out;
+
+            tabs.forEach((tab) => {
+                const cells = Array.isArray(tab.cell_data) ? tab.cell_data : [];
+                cells.forEach((cell) => {
+                    const books = collectBooks(cell);
+                    if (!books.length) return;
+                    out.push({
+                        title: cell.cell_name || tab.title || "推荐",
+                        tab: tabForTitle(tab.title),
+                        books,
+                    });
+                });
+            });
+            return out;
+        }
+
+        function collectBooks(cell, depth) {
+            const books = [];
+            const level = typeof depth === "number" ? depth : 0;
+            if (!cell || typeof cell !== "object" || level > MAX_DEPTH) return books;
+
+            const item = unwrap(cell, level);
+            if (item && item.book_name) books.push(item);
+
+            if (Array.isArray(cell.cell_data)) {
+                for (let i = 0; i < cell.cell_data.length && books.length < MAX_BOOKS; i += 1) {
+                    const found = collectBooks(cell.cell_data[i], level + 1);
+                    for (let j = 0; j < found.length && books.length < MAX_BOOKS; j += 1) {
+                        books.push(found[j]);
+                    }
+                }
+            }
+            return books;
+        }
+
+        /** Upstream wraps a single entity in a one-element array more often
+         *  than not; accept either. */
+        function unwrap(value, depth) {
+            const level = typeof depth === "number" ? depth : 0;
+            if (level > 6) return null;
+            if (Array.isArray(value)) return value.length ? unwrap(value[0], level + 1) : null;
+            if (!value || typeof value !== "object") return null;
+            if (value.book_data) return unwrap(value.book_data, level + 1);
+            return value.book_name || value.series_title || value.title ? value : null;
+        }
+
+        // --------------------------------------------------------------- render
+
+        function renderSkeleton() {
+            feedEl.textContent = "";
+            const grid = document.createElement("div");
+            grid.className = "cards";
+            for (let i = 0; i < 12; i += 1) {
+                const cell = document.createElement("div");
+                cell.className = "skeleton";
+                grid.appendChild(cell);
+            }
+            feedEl.appendChild(grid);
+        }
+
+        function renderSection(section) {
+            const box = document.createElement("section");
+            box.className = "pc-section";
+
+            const head = document.createElement("div");
+            head.className = "pc-section-head";
+            const title = document.createElement("h2");
+            title.textContent = section.title;
+            const hint = document.createElement("span");
+            hint.className = "pc-section-hint";
+            hint.textContent = `${section.books.length} 部`;
+            const more = document.createElement("button");
+            more.className = "pc-section-action";
+            more.type = "button";
+            more.textContent = "搜索更多";
+            more.addEventListener("click", () => {
+                window.location.href = FQPC.route.search(section.title);
+            });
+            head.appendChild(title);
+            head.appendChild(hint);
+            head.appendChild(more);
+
+            const grid = document.createElement("div");
+            grid.className = "cards";
+            section.books.slice(0, 24).forEach((book) => grid.appendChild(renderBook(book, section.tab)));
+
+            box.appendChild(head);
+            box.appendChild(grid);
+            return box;
+        }
+
+        function renderBook(book, tab) {
+            const id = book.book_id || book.item_id || book.id || "";
+            const node = document.createElement("div");
+            node.className = "book";
+
+            const cover = document.createElement("div");
+            cover.className = "cover";
+            const img = document.createElement("img");
+            img.loading = "lazy";
+            img.referrerPolicy = "no-referrer";
+            img.alt = "";
+            img.src = book.thumb_url || book.cover_url || book.cover || "";
+            cover.appendChild(img);
+            if (tab !== "小说") {
+                const badge = document.createElement("span");
+                badge.className = "badge";
+                badge.textContent = tab;
+                cover.appendChild(badge);
+            }
+
+            const name = document.createElement("div");
+            name.className = "name";
+            name.textContent = book.book_name || book.series_title || book.title || "";
+
+            const by = document.createElement("div");
+            by.className = "by";
+            by.textContent = book.author || book.copyright || "未知作者";
+
+            node.appendChild(cover);
+            node.appendChild(name);
+            node.appendChild(by);
+            node.addEventListener("click", () => {
+                if (!id) return;
+                FQPC.track({ source: "番茄", id, tab, title: name.textContent, author: by.textContent, cover: img.src });
+                window.location.href = FQPC.route.detail("番茄", id, tab);
+            });
+            return node;
+        }
+
+        // ----------------------------------------------------------------- tabs
+
+        function renderTabs() {
+            tabChips.textContent = "";
+            CHANNELS.forEach((channel) => {
+                const chip = document.createElement("button");
+                chip.className = "chip";
+                chip.type = "button";
+                chip.textContent = channel.title;
+                if (channel === activeChannel) chip.classList.add("active");
+                chip.addEventListener("click", () => {
+                    activeChannel = channel;
+                    renderTabs();
+                    loadFeed();
+                });
+                tabChips.appendChild(chip);
+            });
+        }
+
+        // -------------------------------------------------------------- 书架
+
+        function renderResume() {
+            const items = (window.FQPC ? FQPC.shelf.historyList() : []).slice(0, 6);
+            const section = document.getElementById("resumeSection");
+            const list = document.getElementById("resumeList");
+            list.textContent = "";
+            section.hidden = items.length === 0;
+            if (!items.length) return;
+
+            items.forEach((entry) => {
+                const node = document.createElement("div");
+                node.className = "resume-item";
+                const img = document.createElement("img");
+                img.referrerPolicy = "no-referrer";
+                img.alt = "";
+                if (entry.cover) img.src = entry.cover;
+                const box = document.createElement("div");
+                const t = document.createElement("div");
+                t.className = "t";
+                t.textContent = entry.title || "正在加载标题…";
+                const m = document.createElement("div");
+                m.className = "m";
+                m.textContent = `${entry.tab}${entry.chapterTitle ? " · " + entry.chapterTitle : ""}`;
+                box.appendChild(t);
+                box.appendChild(m);
+                node.appendChild(img);
+                node.appendChild(box);
+                node.addEventListener("click", () => {
+                    window.location.href = FQPC.route.resume(entry);
+                });
+                list.appendChild(node);
+
+                // The visit is recorded from the URL, which carries no title.
+                // Resolving it here keeps the rail readable without asking every
+                // player page to hand metadata back.
+                if (!entry.title) {
+                    resolveTitle(entry, t);
+                }
+            });
+        }
+
+        async function resolveTitle(entry, node) {
+            try {
+                const response = await fetch(
+                    `/api/detail?source=${encodeURIComponent(entry.source)}&book_id=${encodeURIComponent(entry.id)}&tab=${encodeURIComponent(entry.tab)}`
+                );
+                if (!response.ok) return;
+                const payload = await response.json();
+                const data = payload?.data?.data || payload?.data || {};
+                const title = data.title || data.book_name || data.series_title;
+                const cover = data.cover || data.thumb_url;
+                if (title) {
+                    node.textContent = title;
+                    FQPC.enrich({ source: entry.source, id: entry.id, tab: entry.tab, title, cover });
+                }
+            } catch (_) { /* A missing title must not break the rail. */ }
+        }
+
+        document.getElementById("allHistoryBtn").addEventListener("click", () => {
+            window.location.href = "/library.html";
+        });
+
+        renderTabs();
+        loadFeed();
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", renderResume);
+        } else {
+            renderResume();
+        }
+    </script>
+</body>
+</html>

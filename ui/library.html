@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>书架 · fqapp PC</title>
+    <link rel="icon" href="./favicon.png" type="image/png">
+    <link rel="stylesheet" href="./assets/css/all.min.css">
+    <style>
+        :root {
+            --bg: #eef2f6;
+            --card: rgba(255, 255, 255, 0.92);
+            --text: #18212f;
+            --sub: #637284;
+            --primary: #2f6fed;
+            --line: rgba(24, 33, 47, 0.1);
+            --shadow: 0 18px 40px rgba(18, 28, 45, 0.08);
+        }
+
+        body.dark {
+            --bg: #0f141b;
+            --card: rgba(20, 28, 38, 0.94);
+            --text: #f4f7fb;
+            --sub: #9fb0c2;
+            --primary: #84b5ff;
+            --line: rgba(255, 255, 255, 0.08);
+            --shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "MiSans", "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei UI", "Segoe UI", sans-serif;
+        }
+
+        .seg {
+            display: inline-flex;
+            padding: 3px;
+            gap: 3px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--card);
+            margin-bottom: 18px;
+        }
+
+        .seg button {
+            height: 30px;
+            padding: 0 16px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--sub);
+            font: inherit;
+            font-size: 13.5px;
+            cursor: pointer;
+        }
+
+        .seg button.active { background: var(--primary); color: #fff; }
+
+        .list { display: flex; flex-direction: column; gap: 10px; }
+
+        .row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 14px;
+            border: 1px solid var(--line);
+            border-radius: var(--pc-radius);
+            background: var(--card);
+            transition: transform 0.14s ease, box-shadow 0.14s ease;
+        }
+
+        .row:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 26px rgba(18, 28, 45, 0.13);
+        }
+
+        .row img {
+            width: 54px;
+            height: 72px;
+            flex: none;
+            border-radius: 9px;
+            object-fit: cover;
+            background: rgba(127, 127, 127, 0.14);
+        }
+
+        .row .info { flex: 1; min-width: 0; cursor: pointer; }
+
+        .row .title {
+            font-size: 15px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .row .meta { font-size: 12.5px; color: var(--sub); margin-top: 6px; }
+
+        .row .acts { display: flex; gap: 8px; flex: none; }
+
+        .icon-btn {
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            background: transparent;
+            color: var(--sub);
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .icon-btn:hover { background: var(--pc-hover); color: var(--text); }
+        .icon-btn.star.active { color: #e8a33d; border-color: #e8a33d; }
+    </style>
+    <link rel="stylesheet" href="/assets/pc.css">
+    <script src="/assets/pc.js"></script>
+</head>
+<body>
+    <div class="wrap">
+        <div class="seg" id="segmented">
+            <button type="button" data-tab="history" class="active">继续阅读</button>
+            <button type="button" data-tab="favorites">我的收藏</button>
+        </div>
+        <div class="list" id="list"></div>
+    </div>
+
+    <script>
+        "use strict";
+
+        let view = "history";
+
+        const listEl = document.getElementById("list");
+        const segmented = document.getElementById("segmented");
+
+        function entries() {
+            return view === "history" ? FQPC.shelf.historyList() : FQPC.shelf.favoritesList();
+        }
+
+        function render() {
+            const items = entries();
+            listEl.textContent = "";
+
+            if (!items.length) {
+                const empty = document.createElement("div");
+                empty.className = "pc-empty";
+                empty.textContent = view === "history"
+                    ? "还没有阅读记录。打开任意作品后，这里会记住进度。"
+                    : "还没有收藏。在作品详情页点击「加入收藏」即可。";
+                listEl.appendChild(empty);
+                return;
+            }
+
+            items.forEach((entry) => listEl.appendChild(renderRow(entry)));
+        }
+
+        function renderRow(entry) {
+            const row = document.createElement("div");
+            row.className = "row";
+
+            const img = document.createElement("img");
+            img.alt = "";
+            img.referrerPolicy = "no-referrer";
+            if (entry.cover) img.src = entry.cover;
+
+            const info = document.createElement("div");
+            info.className = "info";
+            const title = document.createElement("div");
+            title.className = "title";
+            title.textContent = entry.title || "正在加载标题…";
+            const meta = document.createElement("div");
+            meta.className = "meta";
+            const when = new Date(entry.at || Date.now());
+            const stamp = `${when.getMonth() + 1}月${when.getDate()}日 ${String(when.getHours()).padStart(2, "0")}:${String(when.getMinutes()).padStart(2, "0")}`;
+            meta.textContent = `${entry.tab} · ${entry.author || "未知作者"} · ${stamp}`;
+            info.appendChild(title);
+            info.appendChild(meta);
+            info.addEventListener("click", () => {
+                window.location.href = FQPC.route.resume(entry);
+            });
+
+            const acts = document.createElement("div");
+            acts.className = "acts";
+
+            const star = document.createElement("button");
+            star.type = "button";
+            star.className = "icon-btn star";
+            star.title = FQPC.shelf.isFavorite(entry) ? "取消收藏" : "加入收藏";
+            star.innerHTML = `<i class="fa-solid fa-star"></i>`;
+            if (FQPC.shelf.isFavorite(entry)) star.classList.add("active");
+            star.addEventListener("click", () => {
+                FQPC.shelf.toggleFavorite(entry);
+                render();
+            });
+
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.className = "icon-btn";
+            remove.title = view === "history" ? "从记录中移除" : "移除收藏";
+            remove.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+            remove.addEventListener("click", () => {
+                if (view === "history") FQPC.shelf.removeFromHistory(entry);
+                else FQPC.shelf.toggleFavorite(entry);
+                render();
+                FQPC.toast("已移除");
+            });
+
+            acts.appendChild(star);
+            acts.appendChild(remove);
+
+            row.appendChild(img);
+            row.appendChild(info);
+            row.appendChild(acts);
+            return row;
+        }
+
+        /** Titles are stored lazily: the visit is recorded from the URL, which
+         *  carries ids but no names. Fill in whatever is still missing. */
+        async function resolveMissing() {
+            for (const entry of entries()) {
+                if (entry.title) continue;
+                try {
+                    const response = await fetch(
+                        `/api/detail?source=${encodeURIComponent(entry.source)}&book_id=${encodeURIComponent(entry.id)}&tab=${encodeURIComponent(entry.tab)}`
+                    );
+                    if (!response.ok) continue;
+                    const payload = await response.json();
+                    const data = payload?.data?.data || payload?.data || {};
+                    const title = data.title || data.book_name || data.series_title;
+                    if (title) {
+                        FQPC.enrich({
+                            source: entry.source,
+                            id: entry.id,
+                            tab: entry.tab,
+                            title,
+                            author: data.author || "",
+                            cover: data.cover || data.thumb_url || "",
+                        });
+                    }
+                } catch (_) { /* Keep the placeholder row; retry next visit. */ }
+            }
+            render();
+        }
+
+        segmented.querySelectorAll("button").forEach((button) => {
+            button.addEventListener("click", () => {
+                segmented.querySelectorAll("button").forEach((b) => b.classList.remove("active"));
+                button.classList.add("active");
+                view = button.dataset.tab;
+                render();
+                resolveMissing();
+            });
+        });
+
+        render();
+        resolveMissing();
+    </script>
+</body>
+</html>

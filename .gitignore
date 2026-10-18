@@ -1,0 +1,27 @@
+# Build output
+/target/
+/dist/
+
+# Runtime state. The app writes this to %LOCALAPPDATA%\fqapp-pc by default and
+# to $env:FQPC_HOME when that is set; both are outside the repository. These
+# entries only matter when someone runs the exe with FQPC_HOME pointed here.
+/runtime-data/
+
+# Editor / OS noise
+*.log
+*.swp
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+
+# The device pool is per-machine state and must never be committed. It holds
+# device identity material for the upstream API.
+device_pool.json
+*.jks
+*.keystore
+*.pem
+
+# Tauri regenerates its JSON schema on every build.
+/desktop/gen/

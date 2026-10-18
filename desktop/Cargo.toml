@@ -1,0 +1,22 @@
+[package]
+name = "fqpc"
+description = "fqapp PC edition - a single-file, no-install desktop client"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+# The shell is deliberately thin: it boots the shared `fqapi_core`, starts the
+# loopback adapter, and hands the window the loopback origin. All business
+# behaviour lives in the core, so the PC edition and the Android edition cannot
+# drift apart.
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+fqapi_core = { path = "../core" }
+tauri = { version = "2", features = [] }
+tauri-plugin-single-instance = "2"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+log = "0.4"
+serde_json = "1"

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设置 · fqapp PC</title>
+    <link rel="icon" href="./favicon.png" type="image/png">
+    <link rel="stylesheet" href="./assets/css/all.min.css">
+    <style>
+        :root {
+            --bg: #eef2f6;
+            --card: rgba(255, 255, 255, 0.92);
+            --text: #18212f;
+            --sub: #637284;
+            --primary: #2f6fed;
+            --line: rgba(24, 33, 47, 0.1);
+            --shadow: 0 18px 40px rgba(18, 28, 45, 0.08);
+        }
+
+        body.dark {
+            --bg: #0f141b;
+            --card: rgba(20, 28, 38, 0.94);
+            --text: #f4f7fb;
+            --sub: #9fb0c2;
+            --primary: #84b5ff;
+            --line: rgba(255, 255, 255, 0.08);
+            --shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "MiSans", "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei UI", "Segoe UI", sans-serif;
+        }
+
+        .pc-panel { max-width: 760px; }
+
+        .pc-row .pc-slider {
+            width: 190px;
+            accent-color: var(--primary);
+        }
+
+        .pc-value { min-width: 62px; text-align: right; font-size: 13px; color: var(--sub); }
+
+        .keys {
+            display: grid;
+            grid-template-columns: 128px 1fr;
+            gap: 9px 14px;
+            font-size: 13.5px;
+            color: var(--text);
+        }
+
+        .keys kbd {
+            font: inherit;
+            font-size: 12px;
+            border: 1px solid var(--line);
+            border-bottom-width: 2px;
+            border-radius: 6px;
+            padding: 3px 8px;
+            background: var(--bg);
+            color: var(--sub);
+            text-align: center;
+        }
+
+        .keys span { color: var(--sub); }
+    </style>
+    <link rel="stylesheet" href="/assets/pc.css">
+    <script src="/assets/pc.js"></script>
+</head>
+<body>
+    <div class="wrap">
+        <section class="pc-section">
+            <div class="pc-section-head"><h2>外观</h2></div>
+            <div class="pc-panel">
+                <div class="pc-row">
+                    <label for="themeSelect">主题</label>
+                    <select id="themeSelect">
+                        <option value="light">浅色</option>
+                        <option value="dark">深色</option>
+                    </select>
+                </div>
+                <div class="pc-row">
+                    <label for="fontScale">正文字号<span class="pc-row-hint">影响小说阅读、听书与漫画的正文</span></label>
+                    <input class="pc-slider" id="fontScale" type="range" min="0.8" max="1.6" step="0.05">
+                    <span class="pc-value" id="fontScaleValue"></span>
+                </div>
+                <div class="pc-row">
+                    <label for="lineHeight">行距</label>
+                    <input class="pc-slider" id="lineHeight" type="range" min="1.4" max="2.6" step="0.05">
+                    <span class="pc-value" id="lineHeightValue"></span>
+                </div>
+            </div>
+        </section>
+
+        <section class="pc-section">
+            <div class="pc-section-head"><h2>播放</h2></div>
+            <div class="pc-panel">
+                <div class="pc-row">
+                    <label for="volume">默认音量</label>
+                    <input class="pc-slider" id="volume" type="range" min="0" max="1" step="0.05">
+                    <span class="pc-value" id="volumeValue"></span>
+                </div>
+                <div class="pc-row">
+                    <label for="speed">默认倍速</label>
+                    <input class="pc-slider" id="speed" type="range" min="0.5" max="3" step="0.1">
+                    <span class="pc-value" id="speedValue"></span>
+                </div>
+                <div class="pc-row">
+                    <label for="autoplay">自动播放下一章<span class="pc-row-hint">听书与短剧播完自动进入下一集</span></label>
+                    <span class="pc-switch"><input type="checkbox" id="autoplay"><span></span></span>
+                </div>
+            </div>
+        </section>
+
+        <section class="pc-section">
+            <div class="pc-section-head"><h2>书架</h2></div>
+            <div class="pc-panel">
+                <div class="pc-row">
+                    <label>清空本地记录<span class="pc-row-hint">删除阅读历史与收藏，不影响已下载的缓存文件</span></label>
+                    <button class="pc-btn" id="clearShelf" type="button">清空</button>
+                </div>
+                <div class="pc-row">
+                    <label>当前记录</label>
+                    <span class="pc-value" id="shelfCount"></span>
+                </div>
+            </div>
+        </section>
+
+        <section class="pc-section">
+            <div class="pc-section-head"><h2>快捷键</h2></div>
+            <div class="pc-panel">
+                <div class="keys">
+                    <kbd>Ctrl / + K</kbd><span>聚焦搜索框</span>
+                    <kbd>Ctrl + L</kbd><span>打开书架</span>
+                    <kbd>Ctrl + ,</kbd><span>打开设置</span>
+                    <kbd>Ctrl + D</kbd><span>切换浅色 / 深色</span>
+                    <kbd>Alt + ← / →</kbd><span>后退 / 前进</span>
+                    <kbd>F11</kbd><span>全屏</span>
+                    <kbd>Esc</kbd><span>退出全屏或收起悬浮工具条</span>
+                    <kbd>鼠标移到顶部</kbd><span>唤出阅读页的侧边栏与工具条</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="pc-section">
+            <div class="pc-section-head"><h2>关于</h2></div>
+            <div class="pc-panel">
+                <div class="pc-row">
+                    <label>版本</label>
+                    <span class="pc-value" id="versionValue"></span>
+                </div>
+                <div class="pc-row">
+                    <label>数据目录<span class="pc-row-hint">设备池、图片缓存与日志都放在这里</span></label>
+                    <span class="pc-value" id="homeValue"></span>
+                </div>
+                <div class="pc-row">
+                    <label>数据来源</label>
+                    <span class="pc-value">番茄小说公开接口</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        "use strict";
+
+        const $ = (id) => document.getElementById(id);
+
+        function bindRange(id, pref, format) {
+            const input = $(id);
+            const label = $(`${id}Value`);
+            const paint = () => {
+                label.textContent = format(Number(input.value));
+            };
+            input.value = FQPC.prefs.get(pref);
+            paint();
+            input.addEventListener("input", () => {
+                FQPC.prefs.set(pref, Number(input.value));
+                paint();
+            });
+        }
+
+        bindRange("fontScale", "fontScale", (v) => `${Math.round(v * 100)}%`);
+        bindRange("lineHeight", "lineHeight", (v) => v.toFixed(2));
+        bindRange("volume", "volume", (v) => `${Math.round(v * 100)}%`);
+        bindRange("speed", "speed", (v) => `${v.toFixed(1)}×`);
+
+        const themeSelect = $("themeSelect");
+        themeSelect.value = FQPC.theme();
+        themeSelect.addEventListener("change", () => {
+            FQPC.setTheme(themeSelect.value);
+            FQPC.toast(themeSelect.value === "dark" ? "已切换到深色" : "已切换到浅色");
+        });
+
+        const autoplay = $("autoplay");
+        autoplay.checked = Boolean(FQPC.prefs.get("autoplayNext"));
+        autoplay.addEventListener("change", () => {
+            FQPC.prefs.set("autoplayNext", autoplay.checked);
+        });
+
+        function paintShelf() {
+            $("shelfCount").textContent =
+                `${FQPC.shelf.historyList().length} 条记录 · ${FQPC.shelf.favoritesList().length} 个收藏`;
+        }
+
+        $("clearShelf").addEventListener("click", () => {
+            const history = FQPC.shelf.historyList().length;
+            const favorites = FQPC.shelf.favoritesList().length;
+            if (!history && !favorites) {
+                FQPC.toast("书架已经是空的");
+                return;
+            }
+            if (!window.confirm(`确定清空 ${history} 条阅读记录和 ${favorites} 个收藏？`)) return;
+            FQPC.shelf.clear();
+            paintShelf();
+            FQPC.toast("已清空书架");
+        });
+
+        $("versionValue").textContent = `v${FQPC.version}`;
+        $("homeValue").textContent = "见启动日志中的「runtime dir」";
+        paintShelf();
+    </script>
+</body>
+</html>

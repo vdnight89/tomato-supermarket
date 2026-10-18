@@ -1,0 +1,22 @@
+[workspace]
+resolver = "2"
+members = ["core", "desktop"]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.80"
+
+# Release profile lives at the workspace root because Cargo ignores profiles in
+# member manifests. The Android build keeps its own profile in fqapp; this one
+# targets a single self-contained Windows executable.
+#
+# `panic = "unwind"` is deliberate and must stay: flutter_rust_bridge turns a
+# caught panic into a typed error on the Dart side, and `panic = "abort"` would
+# kill the whole process instead. The PC shell has no Dart side, but the shared
+# core is byte-identical and the contract should not drift between editions.
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true

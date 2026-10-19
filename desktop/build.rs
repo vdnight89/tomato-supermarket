@@ -34,8 +34,18 @@ fn embed_assets() {
 
     let mut seeds: Vec<Seed> = Vec::new();
     collect(&repo.join("ui"), "web", true, &mut seeds);
-    collect(&repo.join("runtime").join("config"), "config", false, &mut seeds);
-    collect(&repo.join("runtime").join("filters"), "filters", true, &mut seeds);
+    collect(
+        &repo.join("runtime").join("config"),
+        "config",
+        false,
+        &mut seeds,
+    );
+    collect(
+        &repo.join("runtime").join("filters"),
+        "filters",
+        true,
+        &mut seeds,
+    );
     seeds.sort_by(|a, b| a.0.cmp(&b.0));
 
     let out_dir = PathBuf::from(std::env::var("OUT_DIR").expect("OUT_DIR"));
@@ -78,11 +88,7 @@ fn collect(dir: &Path, prefix: &str, owned: bool, out: &mut Vec<Seed>) {
         let entry = entry.expect("dir entry");
         let path = entry.path();
         let name = entry.file_name().to_string_lossy().into_owned();
-        if entry
-            .file_type()
-            .map(|t| t.is_dir())
-            .unwrap_or(false)
-        {
+        if entry.file_type().map(|t| t.is_dir()).unwrap_or(false) {
             collect(&path, &format!("{prefix}/{name}"), owned, out);
         } else {
             out.push((format!("{prefix}/{name}"), path, owned));

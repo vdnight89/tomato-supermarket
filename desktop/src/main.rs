@@ -201,8 +201,7 @@ fn materialize(root: &Path) -> Result<usize, String> {
         let parent = dest
             .parent()
             .ok_or_else(|| format!("no parent for {rel}"))?;
-        fs::create_dir_all(parent)
-            .map_err(|e| format!("create {}: {e}", parent.display()))?;
+        fs::create_dir_all(parent).map_err(|e| format!("create {}: {e}", parent.display()))?;
         // Write beside the target and rename, so an interrupted launch cannot
         // leave a half-written HTML file behind.
         let tmp = dest.with_extension("fqpc-tmp");

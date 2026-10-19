@@ -37,7 +37,7 @@
 
 <p align="center">
   <img src="assets/readme/screens/09-single-file.webp" alt="发布产物：番茄超市.exe 与 SHA256SUMS" width="340">
-  <br><sub>发布产物就这两个文件</sub>
+  <br><sub>发布产物：一个 exe + 一份校验和</sub>
 </p>
 
 ---
@@ -85,7 +85,10 @@
 
 ### 1. 下载
 
-从 [Releases](https://github.com/vdnight89/tomato-supermarket/releases) 下载 `番茄超市.exe`（v1.0.0）。
+从 [Releases v1.0.0](https://github.com/vdnight89/tomato-supermarket/releases/tag/v1.0.0) 下载 **`tomato-supermarket-v1.0.0.exe`**（11.4 MB）。
+
+> GitHub 的 Release 资产名不接受非 ASCII 字符，所以下载到的文件名是 `tomato-supermarket-v1.0.0.exe`。
+> 双击运行后，窗口标题和任务栏显示的产品名是 **番茄超市**。
 
 ### 2. 双击运行
 
@@ -95,10 +98,10 @@
 
 ### 3. 校验下载
 
-Release 里同时提供 `SHA256SUMS`：
+Release 里同时提供 `SHA256SUMS`，其中的文件名与资产名一致：
 
 ```powershell
-Get-FileHash .\番茄超市.exe -Algorithm SHA256
+Get-FileHash .\tomato-supermarket-v1.0.0.exe -Algorithm SHA256
 # 与 SHA256SUMS 里的值一致即未被篡改
 ```
 

@@ -6,18 +6,22 @@
 
 | 文件 | 说明 |
 | --- | --- |
-| `番茄超市.exe` | 11.4 MB，Windows 10 / 11 x64 |
+| `tomato-supermarket-v1.0.0.exe` | 11.4 MB，Windows 10 / 11 x64 |
 | `SHA256SUMS` | 校验和 |
 
 ```
-04db77955038bd214ae5a367dc84514d44dc91b6387ecf13b8b44fd78d80bdcd  番茄超市.exe
+04db77955038bd214ae5a367dc84514d44dc91b6387ecf13b8b44fd78d80bdcd  tomato-supermarket-v1.0.0.exe
 ```
 
 校验：
 
 ```powershell
-Get-FileHash .\番茄超市.exe -Algorithm SHA256
+Get-FileHash .\tomato-supermarket-v1.0.0.exe -Algorithm SHA256
 ```
+
+> GitHub 的 Release 资产名不接受非 ASCII 字符，所以下载到的文件名是
+> `tomato-supermarket-v1.0.0.exe`。双击运行后，窗口标题和任务栏显示的产品名是 **番茄超市**。
+> 想让文件名变回中文，自行重命名即可，不影响运行。
 
 ## 这个版本有什么
 
@@ -42,7 +46,7 @@ Get-FileHash .\番茄超市.exe -Algorithm SHA256
 
 ```powershell
 $env:FQPC_HOME = "E:\fqapp-data"
-.\番茄超市.exe
+.\tomato-supermarket-v1.0.0.exe
 ```
 
 ## 已知限制

@@ -1,4 +1,8 @@
-# Build output
+# Local release archives. The published assets live on GitHub Releases; this folder is
+# a local copy only and must not be committed.
+/release-archives/
+
+
 /target/
 /dist/
 

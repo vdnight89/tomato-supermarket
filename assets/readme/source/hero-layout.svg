@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1200" height="420" viewBox="0 0 1200 420"
+     role="img" aria-labelledby="heroTitle heroDesc">
+  <title id="heroTitle">番茄超市 —— 单文件免安装的 Windows 番茄小说客户端</title>
+  <desc id="heroDesc">左侧是产品名与卖点，右侧是应用发现页的真实截图。</desc>
+
+  <!--
+    排版源文件。最终发布的是由本文件渲染出的 hero.png（见 tools/build-hero.ps1）。
+    这里只保留布局与文字；番茄图标与界面截图是真实素材，放在 ../ 下按相对路径引用，
+    本文件本身不发布到 README。
+  -->
+
+  <defs>
+    <linearGradient id="bgWash" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#141922"/>
+      <stop offset="58%" stop-color="#0d1016"/>
+      <stop offset="100%" stop-color="#10131a"/>
+    </linearGradient>
+
+    <radialGradient id="tomatoGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#e8452f" stop-opacity="0.30"/>
+      <stop offset="70%" stop-color="#e8452f" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#e8452f" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="brandBar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#e8452f"/>
+      <stop offset="100%" stop-color="#f5a742"/>
+    </linearGradient>
+
+    <filter id="softShadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+
+    <clipPath id="shotClip">
+      <rect x="676" y="86" width="452" height="255" rx="10"/>
+    </clipPath>
+
+    <clipPath id="playerClip">
+      <rect x="6" y="6" width="116" height="160" rx="8"/>
+    </clipPath>
+  </defs>
+
+  <!-- 背景自带，GitHub 明暗主题下都可读 -->
+  <rect width="1200" height="420" fill="url(#bgWash)"/>
+
+  <!-- 番茄红的光晕，呼应图标本身的暖色底 -->
+  <ellipse cx="628" cy="196" rx="290" ry="210" fill="url(#tomatoGlow)"/>
+
+  <g id="title-block" font-family="'PingFang SC','Microsoft YaHei','Noto Sans CJK SC','Source Han Sans SC',system-ui,sans-serif">
+    <text x="64" y="74" fill="#f5a742" font-size="18" font-weight="600" letter-spacing="2">WINDOWS 桌面客户端</text>
+
+    <!-- 产品图标（真实素材，就是应用里用的那只戴墨镜的番茄；
+         主体层文件见同目录 hero-subject.png，来源参数见 hero-prompt.txt） -->
+    <image x="64" y="96" width="92" height="92"
+           xlink:href="hero-subject.png" href="hero-subject.png"/>
+
+    <text x="176" y="164" fill="#f7f9fc" font-size="62" font-weight="700" letter-spacing="1">番茄超市</text>
+
+    <rect x="178" y="184" width="96" height="5" rx="2.5" fill="url(#brandBar)"/>
+
+    <text x="64" y="248" fill="#eef2f7" font-size="25" font-weight="600">单个 exe，免安装，双击即用</text>
+    <text x="64" y="288" fill="#9aa6b6" font-size="19">小说 · 听书 · 短剧 · 漫剧 · 漫画，一个客户端全都要</text>
+
+    <g font-family="ui-monospace,'Cascadia Mono',Menlo,Consolas,monospace" font-size="17" fill="#8d99a9">
+      <text x="64" y="346">11.4 MB</text>
+      <circle cx="158" cy="341" r="2.5" fill="#4d5a6b"/>
+      <text x="176" y="346">Windows 10 / 11</text>
+      <circle cx="342" cy="341" r="2.5" fill="#4d5a6b"/>
+      <text x="360" y="346">零运行时依赖</text>
+    </g>
+  </g>
+
+  <!--
+    真实界面截图。01 已经自带原生标题栏，所以这里不再套一层假窗口框 ——
+    重复的窗口边框会让截图看起来像网页而不是桌面应用。
+  -->
+  <g filter="url(#softShadow)">
+    <rect x="672" y="82" width="460" height="263" rx="13" fill="#0a0d12" stroke="rgba(255,255,255,0.10)"/>
+  </g>
+  <g clip-path="url(#shotClip)">
+    <image x="676" y="86" width="452" height="255"
+           xlink:href="../screens/01-discover-dark.png" href="../screens/01-discover-dark.png"/>
+  </g>
+
+  <!-- 播放器截图作为叠层小卡，斜放露出一点，暗示竖屏短剧也能看。
+       位置要让卡片最下角离画布底边留出余量，否则投影会被裁掉一角，看起来像被切了。 -->
+  <g transform="translate(604 222) rotate(-7)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="128" height="172" rx="12" fill="#0a0d12" stroke="rgba(255,255,255,0.12)"/>
+    <g clip-path="url(#playerClip)">
+      <image x="6" y="6" width="116" height="160"
+             xlink:href="../screens/04-drama-player.png" href="../screens/04-drama-player.png"
+             preserveAspectRatio="xMidYMid slice"/>
+    </g>
+  </g>
+</svg>

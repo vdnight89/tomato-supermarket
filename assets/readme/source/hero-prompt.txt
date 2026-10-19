@@ -1,0 +1,58 @@
+番茄超市 · README 主视觉 —— 混合合成记录
+==========================================
+
+发布物：assets/readme/hero.png（2400×840，2 倍渲染，README 里按 900px 宽显示）
+排版源：assets/readme/source/hero-layout.svg
+主体层：assets/readme/source/hero-subject.png
+重渲命令：.\tools\build-hero.ps1
+
+混合合成，不做抠图
+-----------------
+主视觉由两部分叠成：
+
+1. 位图主体 —— 应用图标（戴墨镜的大番茄）。
+   它直接取自 desktop/icons/icon-master.png，也就是程序里真正用的那只番茄，
+   复制到 source/hero-subject.png 后由 SVG 相对路径引用。
+   不用 chroma-key 抠图：应用图标本身就是带圆角遮罩的成品，
+   直接当主体层用，边缘干净，也不会和程序内的图标割裂。
+
+2. SVG 排版层 —— 标题、卖点、元数据、截图框与叠层小卡。
+   文字全部在 SVG 里排，命令与链接不进来（那些留在 README 正文）。
+
+主体层的来源
+------------
+图标本身是生成的，不是手绘。生成参数记录在 tools/icon-args.json：
+
+  aspect_ratio  1:1
+  resolution    2K
+  prompt        App icon, premium 3D render: a plump glossy red tomato mascot
+                character wearing stylish black sunglasses, confident relaxed smirk,
+                small green calyx stem on top, the tomato fills most of the frame,
+                soft studio lighting with subtle rim light, soft contact shadow,
+                vibrant saturated scarlet red, clean warm gradient background,
+                playful modern brand mascot style, ultra clean, highly detailed,
+                square composition, centered, no text, no letters, no watermark
+
+重新生成：chcp 65001 -> mcode-tools connector call
+connector__matrix__generate_image --args-file tools/icon-args.json
+生成后按 AGENTS.md 第 1 节导出各尺寸并替换 favicon。
+
+配色
+----
+背景      #0d1016 / #141922 / #10131a
+正文      #f2f5f9
+辅助文字  #97a3b4 / #9aa6b6
+主色      #e8452f（番茄红）
+强调色    #f5a742（暖橙）
+
+尺寸约束
+--------
+SVG viewBox 1200×420，README 里按 900px 宽渲染（缩放 0.75）。
+关键文字不小于 20 单位，辅助文字不小于 18 单位，分区标题不小于 40 单位。
+当前最大字号 150（钩子标题），最小 17（元数据，等效 12.75px）。
+
+真实素材
+--------
+assets/readme/screens/ 是本机实机截图。
+hero-layout.svg 只引用其中两张：01-discover-dark.png（主图）和
+04-drama-player.png（斜放的播放器叠层小卡）。

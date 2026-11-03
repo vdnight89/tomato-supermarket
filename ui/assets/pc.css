@@ -556,3 +556,27 @@ body[data-pc-shell] .reader-body {
         padding: 16px 14px 48px;
     }
 }
+
+/* ------------------------------------------------- search result cards -- */
+
+/* The desktop grid squeezes each column down to 150px. Beside the 104px cover
+ * and the card padding that leaves roughly 4px for the text column, so the
+ * pages' `overflow-wrap: anywhere` collapses titles into a vertical strip of
+ * single characters. Lay the card out as cover-on-top instead, so the title,
+ * meta, description and tags get the full column width underneath it. */
+body[data-pc-shell] .results .card {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+}
+
+body[data-pc-shell] .results .card > img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+}
+
+body[data-pc-shell] .results .card-body {
+    flex: 0 0 auto;
+}
